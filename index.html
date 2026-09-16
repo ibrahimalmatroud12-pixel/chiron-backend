@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Chiron Vervoerbewijs</title>
+  <title>Chiron Vervoerbewijs & Beheer</title>
   <style>
-    * { box-sizing: border-box; font-family: 'Courier New', Courier, monospace; }
-    body { background-color: #f4f4f9; margin: 0; padding: 10px; display: flex; flex-direction: column; align-items: center; }
+    * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { background-color: #f4f4f9; margin: 0; padding: 15px; display: flex; flex-direction: column; align-items: center; }
     
     /* شاشة القفل */
     #lock-screen {
@@ -23,23 +23,35 @@
       border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer;
     }
 
-    /* تصميم الفاتورة 80mm */
-    .receipt {
-      width: 80mm; background: white; padding: 10px; border: 1px solid #ddd;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1); margin-bottom: 20px;
+    /* لوحة التحكم والمدخلات */
+    .control-panel {
+      width: 80mm; background: white; padding: 15px; border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 15px;
     }
-    .header { text-align: center; font-weight: bold; border-bottom: 1px dashed #000; padding-bottom: 5px; }
-    .line { display: flex; justify-content: space-between; font-size: 12px; margin: 4px 0; }
-    .footer { text-align: center; border-top: 1px dashed #000; padding-top: 5px; font-size: 11px; margin-top: 10px; }
+    .control-panel h3 { margin-top: 0; font-size: 16px; color: #333; text-align: center; }
+    .form-group { margin-bottom: 10px; }
+    .form-group label { display: block; font-size: 12px; font-weight: bold; margin-bottom: 3px; }
+    .form-group input { width: 100%; padding: 8px; font-size: 13px; border: 1px solid #ccc; border-radius: 4px; }
+
+    /* تصميم الفاتورة الحرارية 80mm */
+    .receipt {
+      width: 80mm; background: white; padding: 12px; border: 1px solid #ddd;
+      box-shadow: 0 0 10px rgba(0,0,0,0.08); font-family: 'Courier New', Courier, monospace;
+    }
+    .header { text-align: center; font-weight: bold; border-bottom: 1px dashed #000; padding-bottom: 8px; }
+    .line { display: flex; justify-content: space-between; font-size: 12px; margin: 5px 0; }
+    .footer { text-align: center; border-top: 1px dashed #000; padding-top: 8px; font-size: 11px; margin-top: 12px; }
+    
     .btn-print {
       width: 80mm; padding: 12px; background: #007bff; color: white; border: none;
-      font-size: 16px; border-radius: 5px; font-weight: bold; cursor: pointer;
+      font-size: 16px; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 15px;
     }
 
+    /* إعدادات الطباعة للـ 80mm */
     @media print {
-      body { background: white; padding: 0; }
-      #lock-screen, .btn-print { display: none !important; }
-      .receipt { border: none; box-shadow: none; width: 100%; }
+      body { background: white; padding: 0; margin: 0; }
+      #lock-screen, .control-panel, .btn-print { display: none !important; }
+      .receipt { border: none; box-shadow: none; width: 100%; padding: 0; }
       @page { size: 80mm auto; margin: 0; }
     }
   </style>
@@ -55,20 +67,41 @@
     <p id="error-msg" style="color: #ff6b6b; display: none; margin-top: 10px;">كلمة المرور خاطئة!</p>
   </div>
 
-  <!-- واجهة الفاتورة -->
+  <!-- لوحة إدخال البيانات -->
+  <div class="control-panel">
+    <h3>🚕 لوحة بيانات الرحلة</h3>
+    <div class="form-group">
+      <label>نقطة الانطلاق (Start):</label>
+      <input type="text" id="in-start" value="Brussels Center" oninput="updateReceipt()">
+    </div>
+    <div class="form-group">
+      <label>الوجهة (Bestemming):</label>
+      <input type="text" id="in-dest" value="Zaventem Airport" oninput="updateReceipt()">
+    </div>
+    <div class="form-group">
+      <label>المسافة (Afstand km):</label>
+      <input type="text" id="in-dist" value="14.5 km" oninput="updateReceipt()">
+    </div>
+    <div class="form-group">
+      <label>المبلغ الإجمالي (€ Totaal):</label>
+      <input type="text" id="in-price" value="38.50" oninput="updateReceipt()">
+    </div>
+  </div>
+
+  <!-- معاينة الفاتورة الحرارية -->
   <div class="receipt">
     <div class="header">
       VERVOERBEWIJS CHIRON<br>
       <small>Taxi Service</small>
     </div>
     <div class="line" style="margin-top: 10px;"><span>Datum:</span><span id="cur-date"></span></div>
-    <div class="line"><span>Rit ID:</span><span>#CH-8921</span></div>
+    <div class="line"><span>Rit ID:</span><span id="rit-id">#CH-8921</span></div>
     <hr style="border: 0; border-top: 1px dashed #000;">
-    <div class="line"><span>Start:</span><span>Brussels Center</span></div>
-    <div class="line"><span>Bestemming:</span><span>Zaventem Airport</span></div>
-    <div class="line"><span>Afstand:</span><span>14.5 km</span></div>
+    <div class="line"><span>Start:</span><span id="out-start">Brussels Center</span></div>
+    <div class="line"><span>Bestemming:</span><span id="out-dest">Zaventem Airport</span></div>
+    <div class="line"><span>Afstand:</span><span id="out-dist">14.5 km</span></div>
     <hr style="border: 0; border-top: 1px dashed #000;">
-    <div class="line" style="font-weight: bold; font-size: 14px;"><span>TOTAAL:</span><span>€ 38.50</span></div>
+    <div class="line" style="font-weight: bold; font-size: 14px;"><span>TOTAAL:</span><span id="out-price">€ 38.50</span></div>
     <div class="footer">
       Bedankt voor uw rit!<br>
       Chiron Digital System
@@ -78,9 +111,7 @@
   <button class="btn-print" onclick="window.print()">طباعة الفاتورة 🖨️</button>
 
   <script>
-    document.getElementById('cur-date').innerText = new Date().toLocaleDateString('nl-BE');
-
-    // كلمة المرور المعتمدة
+    // كلمة المرور
     const SECRET_PASS = "ram12345";
 
     function checkPassword() {
@@ -93,17 +124,24 @@
       }
     }
 
-    // السماح بالضغط على زر Enter للدخول
     document.getElementById('pass-input').addEventListener('keypress', function (e) {
-      if (e.key === 'Enter') {
-        checkPassword();
-      }
+      if (e.key === 'Enter') checkPassword();
     });
 
-    // حفظ حالة الدخول طالما التبويب مفتوح
     if (sessionStorage.getItem('authenticated') === 'true') {
       document.getElementById('lock-screen').style.display = 'none';
     }
+
+    // تحديث بيانات الفاتورة فورياً عند الكتابة
+    function updateReceipt() {
+      document.getElementById('out-start').innerText = document.getElementById('in-start').value;
+      document.getElementById('out-dest').innerText = document.getElementById('in-dest').value;
+      document.getElementById('out-dist').innerText = document.getElementById('in-dist').value;
+      document.getElementById('out-price').innerText = '€ ' + document.getElementById('in-price').value;
+    }
+
+    // تعيين التاريخ والتوقيت تلقائياً
+    document.getElementById('cur-date').innerText = new Date().toLocaleDateString('nl-BE') + ' ' + new Date().toLocaleTimeString('nl-BE', {hour: '2-digit', minute:'2-digit'});
   </script>
 </body>
 </html>
