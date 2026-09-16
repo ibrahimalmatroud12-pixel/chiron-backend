@@ -1,812 +1,109 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chiron Acceptatietest Master System</title>
-    <style>
-        body { 
-            font-family: 'Segoe UI', Arial, sans-serif; 
-            background-color: #eef2f5; 
-            margin: 0; 
-            padding: 15px; 
-            color: #333; 
-        }
-        .container { 
-            max-width: 1400px; 
-            margin: 0 auto; 
-            display: flex; 
-            gap: 20px; 
-            flex-wrap: wrap; 
-        }
-        .form-section { 
-            background: #fff; 
-            padding: 20px; 
-            border-radius: 8px; 
-            flex: 1.2; 
-            min-width: 360px; 
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1); 
-            max-height: 92vh; 
-            overflow-y: auto; 
-        }
-        .preview-section { 
-            background: #fff; 
-            padding: 20px; 
-            border-radius: 8px; 
-            flex: 1.8; 
-            min-width: 450px; 
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1); 
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        
-        h2 { 
-            color: #111; 
-            border-bottom: 2px solid #007bff; 
-            padding-bottom: 5px; 
-            font-size: 1.05em; 
-            margin-top: 0; 
-        }
-        h3 { 
-            color: #007bff; 
-            font-size: 0.85em; 
-            margin-top: 10px; 
-            margin-bottom: 4px; 
-            border-bottom: 1px solid #eee; 
-        }
-        label { 
-            display: block; 
-            margin-top: 4px; 
-            font-weight: bold; 
-            font-size: 0.75em; 
-            color: #444; 
-        }
-        input, select { 
-            width: 100%; 
-            padding: 4px; 
-            margin-top: 2px; 
-            border: 1px solid #ccc; 
-            border-radius: 4px; 
-            box-sizing: border-box; 
-            font-size: 0.78em; 
-        }
-        
-        .trip-box { 
-            background: #f8f9fa; 
-            border: 1px solid #ddd; 
-            padding: 8px; 
-            border-radius: 5px; 
-            margin-top: 8px; 
-        }
-        .trip-box-title { 
-            font-weight: bold; 
-            font-size: 0.8em; 
-            color: #007bff; 
-            margin-bottom: 4px; 
-        }
-        
-        .btn { 
-            color: white; 
-            border: none; 
-            padding: 8px; 
-            margin-top: 8px; 
-            border-radius: 4px; 
-            cursor: pointer; 
-            font-weight: bold; 
-            width: 100%; 
-            font-size: 0.85em; 
-        }
-        .btn-update { background-color: #28a745; }
-        .btn-invoice { background-color: #dc3545; }
-        .btn-report { background-color: #fd7e14; }
-        .btn-print { background-color: #007bff; }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chiron Vervoerbewijs</title>
+  <style>
+    * { box-sizing: border-box; font-family: 'Courier New', Courier, monospace; }
+    body { background-color: #f4f4f9; margin: 0; padding: 10px; display: flex; flex-direction: column; align-items: center; }
+    
+    /* شاشة القفل */
+    #lock-screen {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: #1e1e2f; display: flex; flex-direction: column;
+      justify-content: center; align-items: center; z-index: 9999; color: white;
+    }
+    #lock-screen input {
+      padding: 12px; font-size: 18px; text-align: center; border-radius: 8px;
+      border: 1px solid #444; margin: 15px 0; width: 220px; outline: none;
+    }
+    #lock-screen button {
+      padding: 12px 30px; background: #28a745; color: white; border: none;
+      border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer;
+    }
 
-        /* Exact PDF Thermal Receipt Dimensions Settings (226.77pt = 80mm Width) */
-        .invoice-card {
-            width: 226.77pt;
-            background: #fff;
-            padding: 8px 10px;
-            box-sizing: border-box;
-            border: 1px solid #ccc;
-            margin-bottom: 15px;
-            font-family: Helvetica, Arial, sans-serif;
-            font-size: 7.5pt;
-            color: #000;
-            line-height: 1.15;
-            box-shadow: 0 0 5px rgba(0,0,0,0.05);
-            page-break-inside: avoid;
-            break-inside: avoid;
-        }
-        .invoice-card h1 { 
-            margin: 0 0 2px; 
-            font-size: 12pt; 
-            font-weight: bold; 
-            text-align: center; 
-        }
-        .invoice-card h2 { 
-            margin: 4px 0 2px; 
-            border-bottom: none; 
-            font-size: 12pt; 
-            font-weight: bold; 
-            text-align: center; 
-            color: #000;
-        }
-        .invoice-card .header { 
-            margin-bottom: 4px; 
-            text-align: center; 
-        }
-        .invoice-card .company { 
-            font-size: 7pt; 
-            color: #444; 
-            line-height: 1.15; 
-        }
-        .invoice-card table { 
-            width: 100%; 
-            border-collapse: collapse; 
-            margin: 1px 0; 
-            font-size: 7.5pt; 
-        }
-        .invoice-card td { 
-            padding: 1px 0; 
-            vertical-align: top; 
-        }
-        .invoice-card td:first-child { 
-            color: #444; 
-            width: 42%; 
-        }
-        .invoice-card td:last-child { 
-            font-weight: normal; 
-            color: #000; 
-            word-break: break-word; 
-        }
-        .invoice-card .section-title { 
-            font-size: 8pt; 
-            font-weight: bold; 
-            color: #000; 
-            margin-top: 4px; 
-            margin-bottom: 1px; 
-            text-transform: uppercase; 
-        }
-        .invoice-card .divider {
-            border-top: 0.5pt solid #666;
-            margin: 4px 0;
-        }
-        .invoice-card .divider-thick {
-            border-top: 1.2pt solid #000;
-            margin: 4px 0;
-        }
-        .invoice-card .address-block {
-            font-size: 7.5pt;
-            color: #000;
-            margin-bottom: 2px;
-            word-break: break-word;
-        }
-        .invoice-card .gps-text {
-            font-size: 6.5pt;
-            color: #666;
-        }
-        .invoice-card .footer { 
-            margin-top: 6px; 
-            font-size: 6pt; 
-            color: #444; 
-            text-align: center; 
-            line-height: 1.2; 
-        }
+    /* تصميم الفاتورة 80mm */
+    .receipt {
+      width: 80mm; background: white; padding: 10px; border: 1px solid #ddd;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1); margin-bottom: 20px;
+    }
+    .header { text-align: center; font-weight: bold; border-bottom: 1px dashed #000; padding-bottom: 5px; }
+    .line { display: flex; justify-content: space-between; font-size: 12px; margin: 4px 0; }
+    .footer { text-align: center; border-top: 1px dashed #000; padding-top: 5px; font-size: 11px; margin-top: 10px; }
+    .btn-print {
+      width: 80mm; padding: 12px; background: #007bff; color: white; border: none;
+      font-size: 16px; border-radius: 5px; font-weight: bold; cursor: pointer;
+    }
 
-        /* Chiron Report Style */
-        .doc-card { 
-            width: 100%;
-            max-width: 800px;
-            border: 1px solid #ccc; 
-            padding: 20px; 
-            background: #fff; 
-            font-size: 0.82em; 
-            border-radius: 5px; 
-            margin-bottom: 15px; 
-            box-sizing: border-box;
-            page-break-before: always;
-            break-before: page;
-        }
-        .doc-header { 
-            text-align: left; 
-            border-bottom: 2px solid #007bff; 
-            padding-bottom: 8px; 
-            margin-bottom: 15px; 
-        }
-
-        .row { 
-            display: flex; 
-            justify-content: space-between; 
-            margin: 3px 0; 
-        }
-        .bold { font-weight: bold; }
-        
-        .info-grid { 
-            display: grid; 
-            grid-template-columns: 1fr 1fr; 
-            gap: 15px; 
-            margin-bottom: 15px; 
-            background: #f9f9f9; 
-            padding: 12px; 
-            border-radius: 5px; 
-            border: 1px solid #eee; 
-        }
-        .info-block h4 { 
-            margin: 0 0 5px 0; 
-            color: #007bff; 
-            font-size: 0.9em; 
-            border-bottom: 1px solid #ddd; 
-            padding-bottom: 2px; 
-        }
-
-        .summary-container { 
-            display: flex; 
-            gap: 10px; 
-            margin: 15px 0; 
-        }
-        .summary-card { 
-            flex: 1; 
-            padding: 10px; 
-            text-align: center; 
-            border-radius: 5px; 
-            border: 1px solid #ddd; 
-            background: #f8f9fa; 
-        }
-        .summary-card .number { 
-            font-size: 1.5em; 
-            font-weight: bold; 
-        }
-        .card-green { 
-            background: #e8f5e9; 
-            border-color: #c8e6c9; 
-            color: #2e7d32; 
-        }
-        .card-red { 
-            background: #ffebee; 
-            border-color: #ffcdd2; 
-            color: #c62828; 
-        }
-
-        .pdf-trip-item { 
-            border: 1px solid #e0e0e0; 
-            padding: 10px; 
-            border-radius: 5px; 
-            margin-bottom: 10px; 
-            background: #fafafa; 
-        }
-        .pdf-trip-header { 
-            font-weight: bold; 
-            color: #007bff; 
-            border-bottom: 1px solid #eee; 
-            padding-bottom: 4px; 
-            margin-bottom: 6px; 
-        }
-        .status-pass { 
-            color: green; 
-            font-weight: bold; 
-        }
-        
-        .footer-note { 
-            font-size: 0.75em; 
-            color: #666; 
-            margin-top: 15px; 
-            border-top: 1px solid #eee; 
-            padding-top: 8px; 
-            text-align: center; 
-        }
-
-        /* PRINT STYLES - SINGLE PAGE GUARANTEE */
-        @media print {
-            @page {
-                size: 80mm auto;
-                margin: 0;
-            }
-            html, body {
-                width: 80mm;
-                margin: 0 !important;
-                padding: 0 !important;
-                background: #fff;
-            }
-            .no-print { 
-                display: none !important; 
-            }
-            .container { 
-                display: block !important; 
-                width: 100% !important; 
-                margin: 0 !important; 
-                padding: 0 !important; 
-            }
-            .preview-section { 
-                box-shadow: none !important; 
-                border: none !important; 
-                padding: 0 !important; 
-                margin: 0 !important;
-                width: 100% !important; 
-                display: block !important;
-            }
-            .invoice-card { 
-                width: 100% !important; 
-                max-width: 80mm !important;
-                border: none !important; 
-                padding: 4mm 3mm !important; 
-                margin: 0 auto !important; 
-                box-shadow: none !important;
-                page-break-inside: avoid !important;
-                break-inside: avoid !important;
-            }
-            .doc-card {
-                width: 100% !important;
-                border: none !important;
-                padding: 10px !important;
-            }
-            .hide-on-print { 
-                display: none !important; 
-            }
-        }
-    </style>
+    @media print {
+      body { background: white; padding: 0; }
+      #lock-screen, .btn-print { display: none !important; }
+      .receipt { border: none; box-shadow: none; width: 100%; }
+      @page { size: 80mm auto; margin: 0; }
+    }
+  </style>
 </head>
 <body>
 
-<div class="container">
-    <!-- Form Controls -->
-    <div class="form-section no-print">
-        <h2>لوحة التحكم الكاملة والرحلات الخمس</h2>
-        
-        <h3>1. البيانات الأساسية (المنصة والشركة)</h3>
-        <label>اسم المنصة الرئيسي:</label>
-        <input type="text" id="inPlatform" value="Golden Ramdoun">
+  <!-- شاشة كلمة المرور -->
+  <div id="lock-screen">
+    <h2>🔒 النظام محمي</h2>
+    <p>أدخل كلمة المرور للمتابعة:</p>
+    <input type="password" id="pass-input" placeholder="****">
+    <button onclick="checkPassword()">دخول</button>
+    <p id="error-msg" style="color: #ff6b6b; display: none; margin-top: 10px;">كلمة المرور خاطئة!</p>
+  </div>
 
-        <label>اسم الشركة التجريبية العاملة:</label>
-        <input type="text" id="inCompany" value="Ramadan Star(SRL)">
-        <label>عنوان الشركة:</label>
-        <input type="text" id="inAddress" value="Rue Wayez 117,1070Anderlecht">
-        <label>رقم BTW:</label>
-        <input type="text" id="inBTW" value="BE1010201451">
-        <label>رقم KBO:</label>
-        <input type="text" id="inKBO" value="1010201451">
-        <label>البريد الإلكتروني للشركة:</label>
-        <input type="text" id="inEmail" value="k10heiro2014@hotmail.com">
-        <label>الهاتف:</label>
-        <input type="text" id="inPhone" value="+32472312624">
-
-        <h3>2. بيانات Chiron للسائق والسيارة</h3>
-        <label>معرف شيرون (Chiron ID):</label>
-        <input type="text" id="inChironID" value="912">
-        <label>اسم السائق:</label>
-        <input type="text" id="inDriver" value="ALRMADAN KHEIRO">
-        <label>رقم بطاقة السائق (Capaciteitsbewijs):</label>
-        <input type="text" id="inDriverCard" value="35797">
-        <label>الماركة:</label>
-        <input type="text" id="inBrand" value="TESLA">
-        <label>الموديل:</label>
-        <input type="text" id="inCar" value="TESLA MODEL Y">
-        <label>رقم اللوحة:</label>
-        <input type="text" id="inPlate" value="TXAV937">
-
-        <h3>3. إعدادات التاريخ والسعر الفردي</h3>
-        <label>تاريخ التقرير التجريبي:</label>
-        <input type="date" id="inTripDate">
-        <label>اسم الراكب (الفاتورة):</label>
-        <input type="text" id="inPassenger" value="Test">
-        <label>طريقة الدفع:</label>
-        <input type="text" id="inPayment" value="card">
-        <label>السعر الفردي لكل رحلة (€):</label>
-        <input type="number" id="inPrice" value="1.00" step="0.10">
-
-        <h3>4. التحكم التفصيلي بالرحلات الـ 5</h3>
-        
-        <!-- Trip 1 -->
-        <div class="trip-box">
-            <div class="trip-box-title">الرحلة 1 (Rit 1)</div>
-            <div class="row">
-                <input type="time" id="t1_s" value="20:34">
-                <input type="time" id="t1_e" value="20:49">
-            </div>
-            <input type="text" id="t1_from" value="OM Zav Center, 63, Fabrieksstraat, Keiberg, Zaventem, Halle-Vilvoorde, Vlaams-Brabant, Vlaanderen, 1930, België">
-            <input type="text" id="t1_coord_from" value="GPS: 34.489211, 35.951891">
-            <input type="text" id="t1_to" value="Brussel, Brussel-Hoofdstad, Brussel Hoofdstad, België">
-            <input type="text" id="t1_coord_to" value="GPS: 34.489273, 35.952085">
-        </div>
-
-        <!-- Trip 2 -->
-        <div class="trip-box">
-            <div class="trip-box-title">الرحلة 2 (Rit 2)</div>
-            <div class="row">
-                <input type="time" id="t2_s" value="21:04">
-                <input type="time" id="t2_e" value="21:19">
-            </div>
-            <input type="text" id="t2_from" value="Brussels Central Station, Carrefour de l'Europe 2, 1000 Brussels, Belgium">
-            <input type="text" id="t2_coord_from" value="GPS: 50.846700, 4.352500">
-            <input type="text" id="t2_to" value="Brussels Airport, Leopoldlaan, 1930 Zaventem, Belgium">
-            <input type="text" id="t2_coord_to" value="GPS: 50.879800, 4.700500">
-        </div>
-
-        <!-- Trip 3 -->
-        <div class="trip-box">
-            <div class="trip-box-title">الرحلة 3 (Rit 3)</div>
-            <div class="row">
-                <input type="time" id="t3_s" value="21:34">
-                <input type="time" id="t3_e" value="21:49">
-            </div>
-            <input type="text" id="t3_from" value="Brussels Airport, Leopoldlaan, 1930 Zaventem, Belgium">
-            <input type="text" id="t3_coord_from" value="GPS: 50.879800, 4.700500">
-            <input type="text" id="t3_to" value="Manneken Pis, Rue de l'Étuve 46, 1000 Brussels, Belgium">
-            <input type="text" id="t3_coord_to" value="GPS: 50.847600, 4.357200">
-        </div>
-
-        <!-- Trip 4 -->
-        <div class="trip-box">
-            <div class="trip-box-title">الرحلة 4 (Rit 4)</div>
-            <div class="row">
-                <input type="time" id="t4_s" value="22:04">
-                <input type="time" id="t4_e" value="22:19">
-            </div>
-            <input type="text" id="t4_from" value="Manneken Pis, Rue de l'Étuve 46, 1000 Brussels, Belgium">
-            <input type="text" id="t4_coord_from" value="GPS: 50.847600, 4.357200">
-            <input type="text" id="t4_to" value="Brussels South Station, Avenue Fonsny 47B, 1060 Brussels, Belgium">
-            <input type="text" id="t4_coord_to" value="GPS: 50.841100, 4.357100">
-        </div>
-
-        <!-- Trip 5 -->
-        <div class="trip-box">
-            <div class="trip-box-title">الرحلة 5 (Rit 5)</div>
-            <div class="row">
-                <input type="time" id="t5_s" value="22:34">
-                <input type="time" id="t5_e" value="22:49">
-            </div>
-            <input type="text" id="t5_from" value="Brussels South Station, Avenue Fonsny 47B, 1060 Brussels, Belgium">
-            <input type="text" id="t5_coord_from" value="GPS: 50.841100, 4.357100">
-            <input type="text" id="t5_to" value="Grand Place, 1000 Brussels, Belgium">
-            <input type="text" id="t5_coord_to" value="GPS: 50.850300, 4.351700">
-        </div>
-
-        <h3>5. خيارات الطباعة والربط</h3>
-        <button class="btn btn-update" onclick="updateAllDocuments()">تحديث وحفظ كافة البيانات الآن</button>
-        <button class="btn btn-invoice" onclick="printTicketOnly()">طباعة الفاتورة الفردية فقط (Vervoerbewijs)</button>
-        <button class="btn btn-report" onclick="printReportOnly()">طباعة تقرير شيرون فقط (Chiron Report)</button>
-        <button class="btn btn-print" onclick="printAll()">طباعة التقرير الشامل + الفاتورة معاً</button>
+  <!-- واجهة الفاتورة -->
+  <div class="receipt">
+    <div class="header">
+      VERVOERBEWIJS CHIRON<br>
+      <small>Taxi Service</small>
     </div>
-
-    <!-- Live Preview Document Side -->
-    <div class="preview-section" id="printArea">
-        
-        <!-- SECTION 1: SINGLE VERVOERBEWIJS / FACTUUR (EXACT 80MM THERMAL DIMENSIONS) -->
-        <div class="invoice-card" id="ticketSection">
-          <div class="header">
-            <h1 id="outCompany1">Ramadan Star(SRL)</h1>
-            <div class="company">
-              <span id="outAddress1">Rue Wayez 117,1070Anderlecht</span><br>
-              BTW: <span id="outBTW1">BE1010201451</span><br>
-              KBO: <span id="outKBO1">1010201451</span><br>
-              Tel: <span id="outPhone1">+32472312624</span><br>
-              Email: <span id="outEmail1">k10heiro2014@hotmail.com</span>
-            </div>
-            <div class="divider-thick"></div>
-            <h2>VERVOERBEWIJS</h2>
-            <div style="font-size: 7pt; color: #444;">Digitaal Ritbeheer — Vervoerplatform</div>
-            <div style="font-size: 7.5pt; color: #444;">Nr: <span id="docNumber">TRIP-1137-1783692619111</span></div>
-            <div style="font-size: 7.5pt; color: #444;"><span id="docDate">10/07/2026 14:09</span></div>
-          </div>
-
-          <div class="divider"></div>
-          <div class="section-title">RITREGISTRATIE</div>
-          <table>
-            <tr><td>Ritnummer:</td><td id="tripNumber">TRIP-19-1783692612270-25-9624</td></tr>
-            <tr><td>Trip UUID:</td><td id="tripUUID">31d9546c-1ebf-4002-add6-b4..</td></tr>
-          </table>
-
-          <div class="divider"></div>
-          <div class="section-title">CHAUFFEUR</div>
-          <table>
-            <tr><td>Naam:</td><td id="driverName">ALRMADAN KHEIRO</td></tr>
-            <tr><td>Bestuurderskaart:</td><td id="driverCard">35797</td></tr>
-            <tr><td>Tel:</td><td id="driverPhone">+32472312624</td></tr>
-          </table>
-
-          <div class="divider"></div>
-          <div class="section-title">VOERTUIG</div>
-          <table>
-            <tr><td>Nummerplaat:</td><td id="vehiclePlate">TXAV937</td></tr>
-            <tr><td>Voertuig:</td><td id="vehicleModel">TESLA TESLA MODEL Y</td></tr>
-            <tr><td>Chiron ID:</td><td id="chironId">912</td></tr>
-          </table>
-
-          <div class="divider"></div>
-          <div class="section-title">RITGEGEVENS</div>
-          <table>
-            <tr><td>Vertrektijd:</td><td id="startTime">14:09</td></tr>
-            <tr><td>Aankomsttijd:</td><td id="endTime">14:10</td></tr>
-            <tr><td>Passagier:</td><td id="passengerName">Test</td></tr>
-          </table>
-
-          <div style="font-size: 7.5pt; font-weight: bold; margin-top: 3px; color: #444;">Vertrekadres:</div>
-          <div class="address-block">
-            <span id="outFrom1">OM Zav Center, 63, Fabrieksstraat, Keiberg, Zaventem, Halle-Vilvoorde, Vlaams-Brabant, Vlaanderen, 1930, België</span><br>
-            <span class="gps-text"><span id="startGPS">GPS: 34.489211, 35.951891</span></span>
-          </div>
-
-          <div style="font-size: 7.5pt; font-weight: bold; margin-top: 3px; color: #444;">Aankomstadres:</div>
-          <div class="address-block">
-            <span id="outTo1">Brussel, Brussel-Hoofdstad, Brussel Hoofdstad, België</span><br>
-            <span class="gps-text"><span id="endGPS">GPS: 34.489273, 35.952085</span></span>
-          </div>
-
-          <div class="divider"></div>
-          <table>
-            <tr><td>Afstand:</td><td id="distance">0.05 km</td></tr>
-            <tr><td>Duur:</td><td id="duration">1 min</td></tr>
-            <tr><td>Betaalwijze:</td><td id="paymentMethod">card</td></tr>
-          </table>
-
-          <div class="divider"></div>
-          <table>
-            <tr><td>Bedrag excl. BTW:</td><td id="amountExcl">€0.94</td></tr>
-            <tr><td>BTW (6%):</td><td id="vat">€0.06</td></tr>
-          </table>
-
-          <div class="divider-thick"></div>
-          <table style="font-size: 11pt; font-weight: bold;">
-            <tr><td style="color: #000;">TOTAAL:</td><td id="total" style="text-align: right; color: #000;">€1.00</td></tr>
-          </table>
-
-          <div class="divider"></div>
-          <div class="section-title">CHIRON TRANSMISSIE</div>
-          <table>
-            <tr><td>Status:</td><td id="chironStatus" class="status-pass">SUCCESS</td></tr>
-          </table>
-
-          <div class="divider"></div>
-          <div style="text-align: center; font-size: 7.5pt; font-weight: bold; margin: 2px 0;">Bekijk online:</div>
-          <div class="divider"></div>
-
-          <div class="footer">
-            <strong>KLACHTENINSTANTIE</strong><br>
-            Vlaamse Overheid<br>
-            Mobiliteit en Openbare Werken<br>
-            https://www.vlaanderen.be/taxi<br>
-            <div class="divider"></div>
-            Vervoer onderworpen aan 6% BTW (Belgische wetgeving).<br>
-            Ritregistratie conform Art. 33 &amp; 34 — Vlaanderen MOW.<br>
-            Automatisch gegenereerd — Geldig zonder handtekening.<br><br>
-            <strong>Bedankt voor uw vertrouwen!</strong>
-          </div>
-        </div>
-
-        <!-- SECTION 2: CHIRON ACCEPTATIETEST RAPPORT -->
-        <div class="doc-card" id="reportSection">
-            <div class="doc-header">
-                <div style="font-size: 1.1em; font-weight: bold; color: #555;" id="outPlatformPdf">Golden Ramdoun</div>
-                <h2 style="margin: 3px 0; color: #007bff; font-size: 1.4em;">Chiron Acceptatietest Rapport</h2>
-                <div style="font-weight: bold; color: #333; font-size: 0.9em;">Brussels Gewest Vlaanderen MOW</div>
-            </div>
-
-            <div class="info-grid">
-                <div class="info-block">
-                    <h4>Bedrijfsinformatie</h4>
-                    <div><b>Bedrijfsnaam:</b> <span id="outCompanyPdf">Ramadan Star(SRL)</span></div>
-                    <div><b>KBO-nummer:</b> <span id="outKBOPdf">1010201451</span></div>
-                    <div><b>BTW-nummer:</b> <span id="outBTWPdf">BE1010201451</span></div>
-                    <div><b>Adres:</b> <span id="outAddressPdf">Rue Wayez 117,1070Anderlecht</span></div>
-                    <div><b>E-mail:</b> <span id="outEmailPdf">k10heiro2014@hotmail.com</span></div>
-                    <div><b>Telefoon:</b> <span id="outPhonePdf">+32472312624</span></div>
-                </div>
-                <div class="info-block">
-                    <h4>Chauffeursinformatie & Voertuig</h4>
-                    <div><b>Naam:</b> <span id="outDriverPdf">ALRMADAN KHEIRO</span></div>
-                    <div><b>Capaciteitsbewijs:</b> <span id="outDriverCardPdf">35797</span></div>
-                    <div><b>Telefoon:</b> <span id="outDriverPhonePdf">+32472312624</span></div>
-                    <div style="margin-top: 4px;"><b>Merk:</b> <span id="outBrandPdf">TESLA</span></div>
-                    <div><b>Model:</b> <span id="outCarPdf">TESLA MODEL Y</span></div>
-                    <div><b>Nummerplaat:</b> <span id="outPlatePdf">TXAV937</span></div>
-                </div>
-            </div>
-
-            <div style="background: #eef7ff; padding: 8px; border-radius: 4px; border-left: 3px solid #007bff; margin-bottom: 12px;">
-                <div><b>Testdatum:</b> <span id="outTestDate">10 July 2026 om 20:34</span></div>
-                <div><b>Testomgeving:</b> TEST (Acceptatie)</div>
-            </div>
-
-            <div class="bold" style="font-size: 0.9em; margin-bottom: 5px;">Testresultaten Samenvatting:</div>
-            <div class="summary-container">
-                <div class="summary-card">
-                    <div class="number">10</div>
-                    <div>Totaal Berichten</div>
-                </div>
-                <div class="summary-card card-green">
-                    <div class="number">10</div>
-                    <div>Geslaagd</div>
-                </div>
-                <div class="summary-card card-red">
-                    <div class="number">0</div>
-                    <div>Mislukt</div>
-                </div>
-            </div>
-
-            <div class="bold" style="font-size: 0.9em; margin: 15px 0 8px 0; color: #007bff; border-bottom: 1px solid #007bff; padding-bottom: 3px;">Gedetailleerde Testresultaten (5 Ritten):</div>
-            
-            <div id="pdfTripsContainer">
-            </div>
-
-            <div style="background: #e8f5e9; border: 1px solid #a5d6a7; padding: 12px; border-radius: 5px; margin-top: 15px;">
-                <div class="bold" style="color: #2e7d32; font-size: 0.95em;">Acceptatietest Geslaagd</div>
-                <div style="font-size: 0.82em; color: #333; margin-top: 3px;">
-                    Alle 10 berichten (5 VERTREK + 5 AANKOMST) zijn succesvol verzonden.<br>
-                    Dit rapport kan worden ingediend bij de gemeente voor goedkeuring.
-                </div>
-            </div>
-
-            <div class="footer-note">
-                Opmerking: Dit rapport is automatisch gegenereerd door het <span id="outPlatFooter">Golden Ramdoun</span> Taxi Management Systeem.<br>
-                Voor vragen of ondersteuning, neem contact op met uw systeembeheerder.
-            </div>
-        </div>
-
+    <div class="line" style="margin-top: 10px;"><span>Datum:</span><span id="cur-date"></span></div>
+    <div class="line"><span>Rit ID:</span><span>#CH-8921</span></div>
+    <hr style="border: 0; border-top: 1px dashed #000;">
+    <div class="line"><span>Start:</span><span>Brussels Center</span></div>
+    <div class="line"><span>Bestemming:</span><span>Zaventem Airport</span></div>
+    <div class="line"><span>Afstand:</span><span>14.5 km</span></div>
+    <hr style="border: 0; border-top: 1px dashed #000;">
+    <div class="line" style="font-weight: bold; font-size: 14px;"><span>TOTAAL:</span><span>€ 38.50</span></div>
+    <div class="footer">
+      Bedankt voor uw rit!<br>
+      Chiron Digital System
     </div>
-</div>
+  </div>
 
-<script>
-    document.getElementById('inTripDate').valueAsDate = new Date();
+  <button class="btn-print" onclick="window.print()">طباعة الفاتورة 🖨️</button>
 
-    function updateAllDocuments() {
-        var platform = document.getElementById('inPlatform').value;
-        document.getElementById('outPlatformPdf').innerText = platform;
-        document.getElementById('outPlatFooter').innerText = platform;
+  <script>
+    document.getElementById('cur-date').innerText = new Date().toLocaleDateString('nl-BE');
 
-        var company = document.getElementById('inCompany').value;
-        var address = document.getElementById('inAddress').value;
-        var btw = document.getElementById('inBTW').value;
-        var kbo = document.getElementById('inKBO').value;
-        var email = document.getElementById('inEmail').value;
-        var phone = document.getElementById('inPhone').value;
+    // كلمة المرور المعتمدة
+    const SECRET_PASS = "ram12345";
 
-        // Company Details
-        document.getElementById('outCompany1').innerText = company;
-        document.getElementById('outAddress1').innerText = address;
-        document.getElementById('outBTW1').innerText = btw;
-        document.getElementById('outKBO1').innerText = kbo;
-        document.getElementById('outEmail1').innerText = email;
-        document.getElementById('outPhone1').innerText = phone;
-
-        document.getElementById('outCompanyPdf').innerText = company;
-        document.getElementById('outKBOPdf').innerText = kbo;
-        document.getElementById('outBTWPdf').innerText = btw;
-        document.getElementById('outAddressPdf').innerText = address;
-        document.getElementById('outEmailPdf').innerText = email;
-        document.getElementById('outPhonePdf').innerText = phone;
-
-        // Driver & Vehicle Details
-        var driver = document.getElementById('inDriver').value;
-        var card = document.getElementById('inDriverCard').value;
-        var brand = document.getElementById('inBrand').value;
-        var car = document.getElementById('inCar').value;
-        var plate = document.getElementById('inPlate').value;
-        var chironID = document.getElementById('inChironID').value;
-
-        document.getElementById('driverName').innerText = driver;
-        document.getElementById('driverCard').innerText = card;
-        document.getElementById('driverPhone').innerText = phone;
-        document.getElementById('vehicleModel').innerText = (brand + " " + car).trim();
-        document.getElementById('vehiclePlate').innerText = plate;
-        document.getElementById('chironId').innerText = chironID;
-
-        document.getElementById('outDriverPdf').innerText = driver;
-        document.getElementById('outDriverCardPdf').innerText = card;
-        document.getElementById('outDriverPhonePdf').innerText = phone;
-        document.getElementById('outBrandPdf').innerText = brand;
-        document.getElementById('outCarPdf').innerText = car;
-        document.getElementById('outPlatePdf').innerText = plate;
-
-        // Passenger & Payment Options
-        document.getElementById('passengerName').innerText = document.getElementById('inPassenger').value;
-        document.getElementById('paymentMethod').innerText = document.getElementById('inPayment').value;
-
-        // Pricing
-        var singlePrice = parseFloat(document.getElementById('inPrice').value) || 1.00;
-        var excl = (singlePrice / 1.06).toFixed(2);
-        var btwVal = (singlePrice - excl).toFixed(2);
-
-        document.getElementById('total').innerText = "€" + singlePrice.toFixed(2);
-        document.getElementById('amountExcl').innerText = "€" + excl;
-        document.getElementById('vat').innerText = "€" + btwVal;
-
-        // Dates & Times
-        var selectedDate = document.getElementById('inTripDate').value;
-        var dateParts = selectedDate.split('-');
-        var formattedDate = dateParts[2] + "/" + dateParts[1] + "/" + dateParts[0];
-
-        var t1Start = document.getElementById('t1_s').value;
-        var t1End = document.getElementById('t1_e').value;
-
-        document.getElementById('startTime').innerText = t1Start;
-        document.getElementById('endTime').innerText = t1End;
-        document.getElementById('outFrom1').innerText = document.getElementById('t1_from').value;
-        document.getElementById('startGPS').innerText = document.getElementById('t1_coord_from').value;
-        document.getElementById('outTo1').innerText = document.getElementById('t1_to').value;
-        document.getElementById('endGPS').innerText = document.getElementById('t1_coord_to').value;
-        document.getElementById('docDate').innerText = formattedDate + " " + t1Start;
-        document.getElementById('outTestDate').innerText = formattedDate + " om " + t1Start;
-
-        // Dynamic PDF 5 Trips Container
-        var tripsContainer = document.getElementById('pdfTripsContainer');
-        tripsContainer.innerHTML = "";
-
-        for (var i = 1; i <= 5; i++) {
-            var startVal = document.getElementById('t' + i + '_s').value;
-            var endVal = document.getElementById('t' + i + '_e').value;
-            var fromVal = document.getElementById('t' + i + '_from').value;
-            var coordFrom = document.getElementById('t' + i + '_coord_from').value;
-            var toVal = document.getElementById('t' + i + '_to').value;
-            var coordTo = document.getElementById('t' + i + '_coord_to').value;
-
-            var ritID = "TEST-19-17746400779" + (70 + i * 12) + "-" + i;
-
-            var tripHTML = "<div class='pdf-trip-item'>" +
-                "<div class='pdf-trip-header'>Rit " + i + ":</div>" +
-                "<div><b>Ritnummer:</b> " + ritID + "</div>" +
-                "<div><b>Vertrektijd:</b> " + formattedDate + ", " + startVal + ":37</div>" +
-                "<div><b>Aankomsttijd:</b> " + formattedDate + ", " + endVal + ":37</div>" +
-                "<div style='margin-top: 4px;'><b>Van:</b> " + fromVal + "</div>" +
-                "<div style='font-size: 0.85em; color: #555;'>" + coordFrom + "</div>" +
-                "<div style='margin-top: 4px;'><b>Naar:</b> " + toVal + "</div>" +
-                "<div style='font-size: 0.85em; color: #555;'>" + coordTo + "</div>" +
-                "<div style='margin-top: 6px; border-top: 1px solid #eee; padding-top: 4px;'>" +
-                    "VERTREK: <span class='status-pass'>Geslaagd</span> | " +
-                    "AANKOMST: <span class='status-pass'>Geslaagd</span> | " +
-                    "Status: <span class='status-pass'>Geslaagd</span>" +
-                "</div>" +
-            "</div>";
-
-            tripsContainer.innerHTML += tripHTML;
-        }
-
-        sendDataToRenderServer();
+    function checkPassword() {
+      const input = document.getElementById('pass-input').value;
+      if (input === SECRET_PASS) {
+        document.getElementById('lock-screen').style.display = 'none';
+        sessionStorage.setItem('authenticated', 'true');
+      } else {
+        document.getElementById('error-msg').style.display = 'block';
+      }
     }
 
-    async function sendDataToRenderServer() {
-        const payload = {
-            timestamp: new Date().toISOString(),
-            platform: document.getElementById('inPlatform').value,
-            company: document.getElementById('inCompany').value,
-            kbo: document.getElementById('inKBO').value,
-            driver: document.getElementById('inDriver').value,
-            plate: document.getElementById('inPlate').value,
-            status: "ACCEPTATIE_SUCCESS"
-        };
+    // السماح بالضغط على زر Enter للدخول
+    document.getElementById('pass-input').addEventListener('keypress', function (e) {
+      if (e.key === 'Enter') {
+        checkPassword();
+      }
+    });
 
-        try {
-            await fetch("https://chiron-backend.onrender.com/chiron/verzoek", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload)
-            });
-        } catch (err) {
-            console.log("Server sync error:", err);
-        }
+    // حفظ حالة الدخول طالما التبويب مفتوح
+    if (sessionStorage.getItem('authenticated') === 'true') {
+      document.getElementById('lock-screen').style.display = 'none';
     }
-
-    function printTicketOnly() {
-        document.getElementById('reportSection').classList.add('hide-on-print');
-        document.getElementById('ticketSection').classList.remove('hide-on-print');
-        window.print();
-    }
-
-    function printReportOnly() {
-        document.getElementById('ticketSection').classList.add('hide-on-print');
-        document.getElementById('reportSection').classList.remove('hide-on-print');
-        window.print();
-    }
-
-    function printAll() {
-        document.getElementById('ticketSection').classList.remove('hide-on-print');
-        document.getElementById('reportSection').classList.remove('hide-on-print');
-        window.print();
-    }
-
-    window.onload = function() {
-        updateAllDocuments();
-    };
-</script>
-
+  </script>
 </body>
 </html>
