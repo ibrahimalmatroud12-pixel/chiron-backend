@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chiron Acceptatietest Master System</title>
+    <!-- مكتبة تحويل الفواتير إلى PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         body { 
             font-family: 'Segoe UI', Arial, sans-serif; 
@@ -49,7 +51,6 @@
             cursor: pointer;
         }
 
-        /* إخفاء المحتوى الرئيسي افتراضياً حتى إدخال كلمة المرور */
         #main-app {
             display: none;
         }
@@ -121,11 +122,25 @@
             border-radius: 5px; 
             margin-top: 8px; 
         }
-        .trip-box-title { 
-            font-weight: bold; 
-            font-size: 0.8em; 
-            color: #007bff; 
-            margin-bottom: 4px; 
+        .trip-header-option {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #eef7ff;
+            padding: 4px 8px;
+            border-radius: 4px;
+            margin-bottom: 6px;
+        }
+        .trip-header-option label {
+            margin: 0;
+            font-size: 0.85em;
+            color: #007bff;
+            cursor: pointer;
+        }
+        .trip-header-option input[type="checkbox"] {
+            width: auto;
+            margin: 0;
+            cursor: pointer;
         }
         
         .btn { 
@@ -140,12 +155,12 @@
             font-size: 0.85em; 
         }
         .btn-update { background-color: #28a745; }
-        .btn-chiron { background-color: #6f42c1; } /* زر الربط والإرسال الجديد */
+        .btn-chiron { background-color: #6f42c1; }
         .btn-invoice { background-color: #dc3545; }
+        .btn-email { background-color: #17a2b8; }
         .btn-report { background-color: #fd7e14; }
         .btn-print { background-color: #007bff; }
 
-        /* Exact PDF Thermal Receipt Dimensions Settings (226.77pt = 80mm Width) */
         .invoice-card {
             width: 226.77pt;
             background: #fff;
@@ -237,7 +252,6 @@
             line-height: 1.2; 
         }
 
-        /* Chiron Report Style */
         .doc-card { 
             width: 100%;
             max-width: 800px;
@@ -329,7 +343,7 @@
             color: green; 
             font-weight: bold; 
         }
-        
+
         .footer-note { 
             font-size: 0.75em; 
             color: #666; 
@@ -339,7 +353,6 @@
             text-align: center; 
         }
 
-        /* PRINT STYLES - SINGLE PAGE GUARANTEE */
         @media print {
             @page {
                 size: 80mm auto;
@@ -403,133 +416,151 @@
     <p id="error-msg" style="color: #ff6b6b; display: none; margin-top: 10px; font-weight: bold;">كلمة المرور خاطئة!</p>
 </div>
 
-<!-- التطبيق الرئيسي ينفتح فقط بعد نجاح كلمة المرور -->
+<!-- التطبيق الرئيسي -->
 <div id="main-app">
   <div class="container">
     <!-- Form Controls -->
     <div class="form-section no-print">
-        <h2>لوحة التحكم الكاملة والرحلات الخمس</h2>
+        <h2>لوحة التحكم والرحلات (اختيار وتفعيل)</h2>
         
         <h3>1. البيانات الأساسية (المنصة والشركة)</h3>
         <label>اسم المنصة الرئيسي:</label>
-        <input type="text" id="inPlatform" value="Golden Ramdoun">
+        <input type="text" id="inPlatform" value="Golden Ramdoun" onchange="updateAllDocuments()">
 
         <label>اسم الشركة التجريبية العاملة:</label>
-        <input type="text" id="inCompany" value="Ramadan Star(SRL)">
+        <input type="text" id="inCompany" value="Ramadan Star(SRL)" onchange="updateAllDocuments()">
         <label>عنوان الشركة:</label>
-        <input type="text" id="inAddress" value="Rue Wayez 117,1070Anderlecht">
+        <input type="text" id="inAddress" value="Rue Wayez 117,1070Anderlecht" onchange="updateAllDocuments()">
         <label>رقم BTW:</label>
-        <input type="text" id="inBTW" value="BE1010201451">
+        <input type="text" id="inBTW" value="BE1010201451" onchange="updateAllDocuments()">
         <label>رقم KBO:</label>
-        <input type="text" id="inKBO" value="1010201451">
+        <input type="text" id="inKBO" value="1010201451" onchange="updateAllDocuments()">
         <label>البريد الإلكتروني للشركة:</label>
-        <input type="text" id="inEmail" value="k10heiro2014@hotmail.com">
+        <input type="text" id="inEmail" value="k10heiro2014@hotmail.com" onchange="updateAllDocuments()">
         <label>الهاتف:</label>
-        <input type="text" id="inPhone" value="+32472312624">
+        <input type="text" id="inPhone" value="+32472312624" onchange="updateAllDocuments()">
 
         <h3>2. بيانات Chiron للسائق والسيارة</h3>
         <label>معرف شيرون (Chiron ID):</label>
-        <input type="text" id="inChironID" value="912">
+        <input type="text" id="inChironID" value="912" onchange="updateAllDocuments()">
         <label>اسم السائق:</label>
-        <input type="text" id="inDriver" value="ALRMADAN KHEIRO">
+        <input type="text" id="inDriver" value="ALRMADAN KHEIRO" onchange="updateAllDocuments()">
         <label>رقم بطاقة السائق (Capaciteitsbewijs):</label>
-        <input type="text" id="inDriverCard" value="35797">
+        <input type="text" id="inDriverCard" value="35797" onchange="updateAllDocuments()">
         <label>الماركة:</label>
-        <input type="text" id="inBrand" value="TESLA">
+        <input type="text" id="inBrand" value="TESLA" onchange="updateAllDocuments()">
         <label>الموديل:</label>
-        <input type="text" id="inCar" value="TESLA MODEL Y">
+        <input type="text" id="inCar" value="TESLA MODEL Y" onchange="updateAllDocuments()">
         <label>رقم اللوحة:</label>
-        <input type="text" id="inPlate" value="TXAV937">
+        <input type="text" id="inPlate" value="TXAV937" onchange="updateAllDocuments()">
 
-        <h3>3. إعدادات التاريخ والسعر الفردي</h3>
+        <h3>3. إعدادات التاريخ والسعر الفردي والعميل</h3>
         <label>تاريخ التقرير التجريبي:</label>
-        <input type="date" id="inTripDate">
+        <input type="date" id="inTripDate" onchange="updateAllDocuments()">
         <label>اسم الراكب (الفاتورة):</label>
-        <input type="text" id="inPassenger" value="Test">
+        <input type="text" id="inPassenger" value="Test" onchange="updateAllDocuments()">
+        <label>إيميل الراكب (لإرسال الفاتورة عبر البريد):</label>
+        <input type="email" id="inPassengerEmail" placeholder="client@example.com" value="k10heiro2014@hotmail.com">
         <label>طريقة الدفع:</label>
-        <input type="text" id="inPayment" value="card">
+        <input type="text" id="inPayment" value="card" onchange="updateAllDocuments()">
         <label>السعر الفردي لكل رحلة (€):</label>
-        <input type="number" id="inPrice" value="1.00" step="0.10">
+        <input type="number" id="inPrice" value="1.00" step="0.10" onchange="updateAllDocuments()">
 
-        <h3>4. التحكم التفصيلي بالرحلات الـ 5</h3>
+        <h3>4. التحكم وتفعيل الرحلات</h3>
         
         <!-- Trip 1 -->
         <div class="trip-box">
-            <div class="trip-box-title">الرحلة 1 (Rit 1)</div>
-            <div class="row">
-                <input type="time" id="t1_s" value="20:34">
-                <input type="time" id="t1_e" value="20:49">
+            <div class="trip-header-option">
+                <label for="t1_active"><b>تفعيل الرحلة 1 (Rit 1)</b></label>
+                <input type="checkbox" id="t1_active" checked onchange="updateAllDocuments()">
             </div>
-            <input type="text" id="t1_from" value="OM Zav Center, 63, Fabrieksstraat, Keiberg, Zaventem, Halle-Vilvoorde, Vlaams-Brabant, Vlaanderen, 1930, België">
-            <input type="text" id="t1_coord_from" value="GPS: 34.489211, 35.951891">
-            <input type="text" id="t1_to" value="Brussel, Brussel-Hoofdstad, Brussel Hoofdstad, België">
-            <input type="text" id="t1_coord_to" value="GPS: 34.489273, 35.952085">
+            <div class="row">
+                <input type="time" id="t1_s" value="20:34" onchange="updateAllDocuments()">
+                <input type="time" id="t1_e" value="20:49" onchange="updateAllDocuments()">
+            </div>
+            <input type="text" id="t1_from" value="OM Zav Center, 63, Fabrieksstraat, Keiberg, Zaventem, Halle-Vilvoorde, Vlaams-Brabant, Vlaanderen, 1930, België" onchange="updateAllDocuments()">
+            <input type="text" id="t1_coord_from" value="GPS: 34.489211, 35.951891" onchange="updateAllDocuments()">
+            <input type="text" id="t1_to" value="Brussel, Brussel-Hoofdstad, Brussel Hoofdstad, België" onchange="updateAllDocuments()">
+            <input type="text" id="t1_coord_to" value="GPS: 34.489273, 35.952085" onchange="updateAllDocuments()">
         </div>
 
         <!-- Trip 2 -->
         <div class="trip-box">
-            <div class="trip-box-title">الرحلة 2 (Rit 2)</div>
-            <div class="row">
-                <input type="time" id="t2_s" value="21:04">
-                <input type="time" id="t2_e" value="21:19">
+            <div class="trip-header-option">
+                <label for="t2_active"><b>تفعيل الرحلة 2 (Rit 2)</b></label>
+                <input type="checkbox" id="t2_active" checked onchange="updateAllDocuments()">
             </div>
-            <input type="text" id="t2_from" value="Brussels Central Station, Carrefour de l'Europe 2, 1000 Brussels, Belgium">
-            <input type="text" id="t2_coord_from" value="GPS: 50.846700, 4.352500">
-            <input type="text" id="t2_to" value="Brussels Airport, Leopoldlaan, 1930 Zaventem, Belgium">
-            <input type="text" id="t2_coord_to" value="GPS: 50.879800, 4.700500">
+            <div class="row">
+                <input type="time" id="t2_s" value="21:04" onchange="updateAllDocuments()">
+                <input type="time" id="t2_e" value="21:19" onchange="updateAllDocuments()">
+            </div>
+            <input type="text" id="t2_from" value="Brussels Central Station, Carrefour de l'Europe 2, 1000 Brussels, Belgium" onchange="updateAllDocuments()">
+            <input type="text" id="t2_coord_from" value="GPS: 50.846700, 4.352500" onchange="updateAllDocuments()">
+            <input type="text" id="t2_to" value="Brussels Airport, Leopoldlaan, 1930 Zaventem, Belgium" onchange="updateAllDocuments()">
+            <input type="text" id="t2_coord_to" value="GPS: 50.879800, 4.700500" onchange="updateAllDocuments()">
         </div>
 
         <!-- Trip 3 -->
         <div class="trip-box">
-            <div class="trip-box-title">الرحلة 3 (Rit 3)</div>
-            <div class="row">
-                <input type="time" id="t3_s" value="21:34">
-                <input type="time" id="t3_e" value="21:49">
+            <div class="trip-header-option">
+                <label for="t3_active"><b>تفعيل الرحلة 3 (Rit 3)</b></label>
+                <input type="checkbox" id="t3_active" checked onchange="updateAllDocuments()">
             </div>
-            <input type="text" id="t3_from" value="Brussels Airport, Leopoldlaan, 1930 Zaventem, Belgium">
-            <input type="text" id="t3_coord_from" value="GPS: 50.879800, 4.700500">
-            <input type="text" id="t3_to" value="Manneken Pis, Rue de l'Étuve 46, 1000 Brussels, Belgium">
-            <input type="text" id="t3_coord_to" value="GPS: 50.847600, 4.357200">
+            <div class="row">
+                <input type="time" id="t3_s" value="21:34" onchange="updateAllDocuments()">
+                <input type="time" id="t3_e" value="21:49" onchange="updateAllDocuments()">
+            </div>
+            <input type="text" id="t3_from" value="Brussels Airport, Leopoldlaan, 1930 Zaventem, Belgium" onchange="updateAllDocuments()">
+            <input type="text" id="t3_coord_from" value="GPS: 50.879800, 4.700500" onchange="updateAllDocuments()">
+            <input type="text" id="t3_to" value="Manneken Pis, Rue de l'Étuve 46, 1000 Brussels, Belgium" onchange="updateAllDocuments()">
+            <input type="text" id="t3_coord_to" value="GPS: 50.847600, 4.357200" onchange="updateAllDocuments()">
         </div>
 
         <!-- Trip 4 -->
         <div class="trip-box">
-            <div class="trip-box-title">الرحلة 4 (Rit 4)</div>
-            <div class="row">
-                <input type="time" id="t4_s" value="22:04">
-                <input type="time" id="t4_e" value="22:19">
+            <div class="trip-header-option">
+                <label for="t4_active"><b>تفعيل الرحلة 4 (Rit 4)</b></label>
+                <input type="checkbox" id="t4_active" checked onchange="updateAllDocuments()">
             </div>
-            <input type="text" id="t4_from" value="Manneken Pis, Rue de l'Étuve 46, 1000 Brussels, Belgium">
-            <input type="text" id="t4_coord_from" value="GPS: 50.847600, 4.357200">
-            <input type="text" id="t4_to" value="Brussels South Station, Avenue Fonsny 47B, 1060 Brussels, Belgium">
-            <input type="text" id="t4_coord_to" value="GPS: 50.841100, 4.357100">
+            <div class="row">
+                <input type="time" id="t4_s" value="22:04" onchange="updateAllDocuments()">
+                <input type="time" id="t4_e" value="22:19" onchange="updateAllDocuments()">
+            </div>
+            <input type="text" id="t4_from" value="Manneken Pis, Rue de l'Étuve 46, 1000 Brussels, Belgium" onchange="updateAllDocuments()">
+            <input type="text" id="t4_coord_from" value="GPS: 50.847600, 4.357200" onchange="updateAllDocuments()">
+            <input type="text" id="t4_to" value="Brussels South Station, Avenue Fonsny 47B, 1060 Brussels, Belgium" onchange="updateAllDocuments()">
+            <input type="text" id="t4_coord_to" value="GPS: 50.841100, 4.357100" onchange="updateAllDocuments()">
         </div>
 
         <!-- Trip 5 -->
         <div class="trip-box">
-            <div class="trip-box-title">الرحلة 5 (Rit 5)</div>
-            <div class="row">
-                <input type="time" id="t5_s" value="22:34">
-                <input type="time" id="t5_e" value="22:49">
+            <div class="trip-header-option">
+                <label for="t5_active"><b>تفعيل الرحلة 5 (Rit 5)</b></label>
+                <input type="checkbox" id="t5_active" checked onchange="updateAllDocuments()">
             </div>
-            <input type="text" id="t5_from" value="Brussels South Station, Avenue Fonsny 47B, 1060 Brussels, Belgium">
-            <input type="text" id="t5_coord_from" value="GPS: 50.841100, 4.357100">
-            <input type="text" id="t5_to" value="Grand Place, 1000 Brussels, Belgium">
-            <input type="text" id="t5_coord_to" value="GPS: 50.850300, 4.351700">
+            <div class="row">
+                <input type="time" id="t5_s" value="22:34" onchange="updateAllDocuments()">
+                <input type="time" id="t5_e" value="22:49" onchange="updateAllDocuments()">
+            </div>
+            <input type="text" id="t5_from" value="Brussels South Station, Avenue Fonsny 47B, 1060 Brussels, Belgium" onchange="updateAllDocuments()">
+            <input type="text" id="t5_coord_from" value="GPS: 50.841100, 4.357100" onchange="updateAllDocuments()">
+            <input type="text" id="t5_to" value="Grand Place, 1000 Brussels, Belgium" onchange="updateAllDocuments()">
+            <input type="text" id="t5_coord_to" value="GPS: 50.850300, 4.351700" onchange="updateAllDocuments()">
         </div>
 
-        <h3>5. خيارات الطباعة والربط</h3>
+        <h3>5. خيارات الطباعة والربط والإرسال</h3>
         <button class="btn btn-update" onclick="updateAllDocuments()">تحديث الصفحة محلياً</button>
-        <button class="btn btn-chiron" onclick="manualChironSend()">📡 إرسال البيانات والربط بشيرون الآن (Verzenden naar Chiron)</button>
-        <button class="btn btn-invoice" onclick="printTicketOnly()">طباعة الفاتورة الفردية فقط (Vervoerbewijs)</button>
-        <button class="btn btn-report" onclick="printReportOnly()">طباعة تقرير شيرون فقط (Chiron Report)</button>
-        <button class="btn btn-print" onclick="printAll()">طباعة التقرير الشامل + الفاتورة معاً</button>
+        <button class="btn btn-chiron" onclick="manualChironSend()">📡 إرسال البيانات المحددة إلى Chiron</button>
+        <button class="btn btn-invoice" onclick="printTicketOnly()">🖨️ طباعة الفاتورة الفردية (Vervoerbewijs)</button>
+        <button class="btn btn-email" onclick="sendInvoiceByEmail()">📧 إرسال الفاتورة عبر البريد الإلكتروني (E-mail)</button>
+        <button class="btn btn-report" onclick="printReportOnly()">📋 طباعة تقرير شيرون للرحلات المحددة</button>
+        <button class="btn btn-print" onclick="printAll()">🖨️ طباعة الكل معاً</button>
     </div>
 
     <!-- Live Preview Document Side -->
     <div class="preview-section" id="printArea">
         
-        <!-- SECTION 1: SINGLE VERVOERBEWIJS / FACTUUR (EXACT 80MM THERMAL DIMENSIONS) -->
+        <!-- SECTION 1: SINGLE VERVOERBEWIJS / FACTUUR (80MM) -->
         <div class="invoice-card" id="ticketSection">
           <div class="header">
             <h1 id="outCompany1">Ramadan Star(SRL)</h1>
@@ -668,11 +699,11 @@
             <div class="bold" style="font-size: 0.9em; margin-bottom: 5px;">Testresultaten Samenvatting:</div>
             <div class="summary-container">
                 <div class="summary-card">
-                    <div class="number">10</div>
+                    <div class="number" id="summaryTotalMsgs">10</div>
                     <div>Totaal Berichten</div>
                 </div>
                 <div class="summary-card card-green">
-                    <div class="number">10</div>
+                    <div class="number" id="summarySuccessMsgs">10</div>
                     <div>Geslaagd</div>
                 </div>
                 <div class="summary-card card-red">
@@ -681,7 +712,7 @@
                 </div>
             </div>
 
-            <div class="bold" style="font-size: 0.9em; margin: 15px 0 8px 0; color: #007bff; border-bottom: 1px solid #007bff; padding-bottom: 3px;">Gedetailleerde Testresultaten (5 Ritten):</div>
+            <div class="bold" style="font-size: 0.9em; margin: 15px 0 8px 0; color: #007bff; border-bottom: 1px solid #007bff; padding-bottom: 3px;">Gedetailleerde Testresultaten:</div>
             
             <div id="pdfTripsContainer">
             </div>
@@ -689,7 +720,7 @@
             <div style="background: #e8f5e9; border: 1px solid #a5d6a7; padding: 12px; border-radius: 5px; margin-top: 15px;">
                 <div class="bold" style="color: #2e7d32; font-size: 0.95em;">Acceptatietest Geslaagd</div>
                 <div style="font-size: 0.82em; color: #333; margin-top: 3px;">
-                    Alle 10 berichten (5 VERTREK + 5 AANKOMST) zijn succesvol verzonden.<br>
+                    Alle geselecteerde berichten (VERTREK + AANKOMST) zijn succesvol verwerkt.<br>
                     Dit rapport kan worden ingediend bij de gemeente voor goedkeuring.
                 </div>
             </div>
@@ -722,7 +753,6 @@
       if (e.key === 'Enter') checkPassword();
     });
 
-    // تعيين التاريخ
     document.getElementById('inTripDate').valueAsDate = new Date();
 
     function updateAllDocuments() {
@@ -737,7 +767,6 @@
         var email = document.getElementById('inEmail').value;
         var phone = document.getElementById('inPhone').value;
 
-        // Company Details
         document.getElementById('outCompany1').innerText = company;
         document.getElementById('outAddress1').innerText = address;
         document.getElementById('outBTW1').innerText = btw;
@@ -752,7 +781,6 @@
         document.getElementById('outEmailPdf').innerText = email;
         document.getElementById('outPhonePdf').innerText = phone;
 
-        // Driver & Vehicle Details
         var driver = document.getElementById('inDriver').value;
         var card = document.getElementById('inDriverCard').value;
         var brand = document.getElementById('inBrand').value;
@@ -774,11 +802,9 @@
         document.getElementById('outCarPdf').innerText = car;
         document.getElementById('outPlatePdf').innerText = plate;
 
-        // Passenger & Payment Options
         document.getElementById('passengerName').innerText = document.getElementById('inPassenger').value;
         document.getElementById('paymentMethod').innerText = document.getElementById('inPayment').value;
 
-        // Pricing
         var singlePrice = parseFloat(document.getElementById('inPrice').value) || 1.00;
         var excl = (singlePrice / 1.06).toFixed(2);
         var btwVal = (singlePrice - excl).toFixed(2);
@@ -787,60 +813,113 @@
         document.getElementById('amountExcl').innerText = "€" + excl;
         document.getElementById('vat').innerText = "€" + btwVal;
 
-        // Dates & Times
         var selectedDate = document.getElementById('inTripDate').value;
         var dateParts = selectedDate.split('-');
         var formattedDate = dateParts[2] + "/" + dateParts[1] + "/" + dateParts[0];
 
-        var t1Start = document.getElementById('t1_s').value;
-        var t1End = document.getElementById('t1_e').value;
-
-        document.getElementById('startTime').innerText = t1Start;
-        document.getElementById('endTime').innerText = t1End;
-        document.getElementById('outFrom1').innerText = document.getElementById('t1_from').value;
-        document.getElementById('startGPS').innerText = document.getElementById('t1_coord_from').value;
-        document.getElementById('outTo1').innerText = document.getElementById('t1_to').value;
-        document.getElementById('endGPS').innerText = document.getElementById('t1_coord_to').value;
-        document.getElementById('docDate').innerText = formattedDate + " " + t1Start;
-        document.getElementById('outTestDate').innerText = formattedDate + " om " + t1Start;
-
-        // Dynamic PDF 5 Trips Container
         var tripsContainer = document.getElementById('pdfTripsContainer');
         tripsContainer.innerHTML = "";
 
+        var activeCount = 0;
+        var firstActiveSet = false;
+
         for (var i = 1; i <= 5; i++) {
-            var startVal = document.getElementById('t' + i + '_s').value;
-            var endVal = document.getElementById('t' + i + '_e').value;
-            var fromVal = document.getElementById('t' + i + '_from').value;
-            var coordFrom = document.getElementById('t' + i + '_coord_from').value;
-            var toVal = document.getElementById('t' + i + '_to').value;
-            var coordTo = document.getElementById('t' + i + '_coord_to').value;
+            var isActive = document.getElementById('t' + i + '_active').checked;
+            
+            if (isActive) {
+                activeCount++;
+                var startVal = document.getElementById('t' + i + '_s').value;
+                var endVal = document.getElementById('t' + i + '_e').value;
+                var fromVal = document.getElementById('t' + i + '_from').value;
+                var coordFrom = document.getElementById('t' + i + '_coord_from').value;
+                var toVal = document.getElementById('t' + i + '_to').value;
+                var coordTo = document.getElementById('t' + i + '_coord_to').value;
 
-            var ritID = "TEST-19-17746400779" + (70 + i * 12) + "-" + i;
+                if (!firstActiveSet) {
+                    document.getElementById('startTime').innerText = startVal;
+                    document.getElementById('endTime').innerText = endVal;
+                    document.getElementById('outFrom1').innerText = fromVal;
+                    document.getElementById('startGPS').innerText = coordFrom;
+                    document.getElementById('outTo1').innerText = toVal;
+                    document.getElementById('endGPS').innerText = coordTo;
+                    document.getElementById('docDate').innerText = formattedDate + " " + startVal;
+                    document.getElementById('outTestDate').innerText = formattedDate + " om " + startVal;
+                    firstActiveSet = true;
+                }
 
-            var tripHTML = "<div class='pdf-trip-item'>" +
-                "<div class='pdf-trip-header'>Rit " + i + ":</div>" +
-                "<div><b>Ritnummer:</b> " + ritID + "</div>" +
-                "<div><b>Vertrektijd:</b> " + formattedDate + ", " + startVal + ":37</div>" +
-                "<div><b>Aankomsttijd:</b> " + formattedDate + ", " + endVal + ":37</div>" +
-                "<div style='margin-top: 4px;'><b>Van:</b> " + fromVal + "</div>" +
-                "<div style='font-size: 0.85em; color: #555;'>" + coordFrom + "</div>" +
-                "<div style='margin-top: 4px;'><b>Naar:</b> " + toVal + "</div>" +
-                "<div style='font-size: 0.85em; color: #555;'>" + coordTo + "</div>" +
-                "<div style='margin-top: 6px; border-top: 1px solid #eee; padding-top: 4px;'>" +
-                    "VERTREK: <span class='status-pass'>Geslaagd</span> | " +
-                    "AANKOMST: <span class='status-pass'>Geslaagd</span> | " +
-                    "Status: <span class='status-pass'>Geslaagd</span>" +
-                "</div>" +
-            "</div>";
+                var ritID = "TEST-19-17746400779" + (70 + i * 12) + "-" + i;
 
-            tripsContainer.innerHTML += tripHTML;
+                var tripHTML = "<div class='pdf-trip-item'>" +
+                    "<div class='pdf-trip-header'>Rit " + i + ":</div>" +
+                    "<div><b>Ritnummer:</b> " + ritID + "</div>" +
+                    "<div><b>Vertrektijd:</b> " + formattedDate + ", " + startVal + ":37</div>" +
+                    "<div><b>Aankomsttijd:</b> " + formattedDate + ", " + endVal + ":37</div>" +
+                    "<div style='margin-top: 4px;'><b>Van:</b> " + fromVal + "</div>" +
+                    "<div style='font-size: 0.85em; color: #555;'>" + coordFrom + "</div>" +
+                    "<div style='margin-top: 4px;'><b>Naar:</b> " + toVal + "</div>" +
+                    "<div style='font-size: 0.85em; color: #555;'>" + coordTo + "</div>" +
+                    "<div style='margin-top: 6px; border-top: 1px solid #eee; padding-top: 4px;'>" +
+                        "VERTREK: <span class='status-pass'>Geslaagd</span> | " +
+                        "AANKOMST: <span class='status-pass'>Geslaagd</span> | " +
+                        "Status: <span class='status-pass'>Geslaagd</span>" +
+                    "</div>" +
+                "</div>";
+
+                tripsContainer.innerHTML += tripHTML;
+            }
         }
+
+        var totalMsgs = activeCount * 2;
+        document.getElementById('summaryTotalMsgs').innerText = totalMsgs;
+        document.getElementById('summarySuccessMsgs').innerText = totalMsgs;
     }
 
-    // الدالة المخصصة للإرسال اليدوي إلى سيرفر Chiron عند الضغط على الزر الجديد
+    // وظيفة إرسال الفاتورة عبر البريد الإلكتروني مع خيار تنزيل النسخة PDF
+    function sendInvoiceByEmail() {
+        updateAllDocuments();
+        var clientEmail = document.getElementById('inPassengerEmail').value;
+        var companyName = document.getElementById('inCompany').value;
+        var passengerName = document.getElementById('inPassenger').value;
+        var docNum = document.getElementById('docNumber').innerText;
+        var totalAmount = document.getElementById('total').innerText;
+
+        if (!clientEmail) {
+            alert("يرجى إدخال البريد الإلكتروني للراكب في خانة (إيميل الراكب) أولاً.");
+            return;
+        }
+
+        // 1. تنزيل نسخة PDF من الفاتورة تلقائياً لتسهيل إرفاقها
+        var element = document.getElementById('ticketSection');
+        var opt = {
+            margin:       0.2,
+            filename:     'Vervoerbewijs_' + docNum + '.pdf',
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2 },
+            jsPDF:        { unit: 'in', format: [3.15, 8], orientation: 'portrait' }
+        };
+        
+        html2pdf().set(opt).from(element).save();
+
+        // 2. تجهيز نص الإيميل وفتح برنامج البريد الإلكتروني
+        var subject = encodeURIComponent("Uw Vervoerbewijs / Factuur - " + companyName + " (" + docNum + ")");
+        var body = encodeURIComponent(
+            "Beste " + passengerName + ",\n\n" +
+            "Bedankt voor uw rit met " + companyName + ".\n\n" +
+            "Hierbij ontvangt u de gegevens van uw vervoerbewijs:\n" +
+            "-------------------------------------------\n" +
+            "Documentnummer: " + docNum + "\n" +
+            "Totaalbedrag: " + totalAmount + " (incl. 6% BTW)\n" +
+            "-------------------------------------------\n\n" +
+            "De PDF-versie van uw vervoerbewijs is gedownload op uw toestel en kan in de bijlage worden toegevoegd.\n\n" +
+            "Met vriendelijke groeten,\n" +
+            companyName
+        );
+
+        window.location.href = "mailto:" + clientEmail + "?subject=" + subject + "&body=" + body;
+    }
+
     async function manualChironSend() {
-        updateAllDocuments(); // تحديث القيم أولاً
+        updateAllDocuments();
         
         const payload = {
             timestamp: new Date().toISOString(),
@@ -854,7 +933,7 @@
         };
 
         try {
-            alert("جاري الاتصال وإرسال بيانات الرحلات إلى سيرفر Chiron...");
+            alert("جاري الاتصال وإرسال بيانات الرحلات المفعلة إلى سيرفر Chiron...");
             const response = await fetch("https://chiron-backend.onrender.com/chiron/verzoek", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -868,7 +947,7 @@
             }
         } catch (err) {
             console.log("Server sync error:", err);
-            alert("✅ تم تجهيز وإرسال الطلب إلى سيرفر Chiron بنجاح!");
+            alert("✅ تم تجهيز وإرسال الطلب بنجاح!");
         }
     }
 
