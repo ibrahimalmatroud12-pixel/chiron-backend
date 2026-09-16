@@ -13,19 +13,45 @@
             color: #333; 
         }
 
-        /* شاشة القفل والحماية */
+        /* شاشة القفل والحماية الكاملة */
         #lock-screen {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #1e1e2f; display: flex; flex-direction: column;
-            justify-content: center; align-items: center; z-index: 99999; color: white;
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100vw; 
+            height: 100vh;
+            background: #1e1e2f; 
+            display: flex; 
+            flex-direction: column;
+            justify-content: center; 
+            align-items: center; 
+            z-index: 999999; 
+            color: white;
         }
         #lock-screen input {
-            padding: 12px; font-size: 18px; text-align: center; border-radius: 8px;
-            border: 1px solid #444; margin: 15px 0; width: 220px; outline: none;
+            padding: 12px; 
+            font-size: 18px; 
+            text-align: center; 
+            border-radius: 8px;
+            border: 1px solid #444; 
+            margin: 15px 0; 
+            width: 240px; 
+            outline: none;
         }
         #lock-screen button {
-            padding: 12px 30px; background: #28a745; color: white; border: none;
-            border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer;
+            padding: 12px 30px; 
+            background: #28a745; 
+            color: white; 
+            border: none;
+            border-radius: 6px; 
+            font-size: 16px; 
+            font-weight: bold; 
+            cursor: pointer;
+        }
+
+        /* إخفاء المحتوى الرئيسي افتراضياً حتى إدخال كلمة المرور */
+        #main-app {
+            display: none;
         }
 
         .container { 
@@ -327,6 +353,9 @@
             #lock-screen, .no-print { 
                 display: none !important; 
             }
+            #main-app {
+                display: block !important;
+            }
             .container { 
                 display: block !important; 
                 width: 100% !important; 
@@ -367,13 +396,15 @@
 <!-- شاشة القفل بكلمة المرور -->
 <div id="lock-screen">
     <h2>🔒 النظام محمي</h2>
-    <p>أدخل كلمة المرور للمتابعة:</p>
+    <p>أدخل كلمة المرور للوصول إلى لوحة التحكم:</p>
     <input type="password" id="pass-input" placeholder="****">
     <button onclick="checkPassword()">دخول</button>
-    <p id="error-msg" style="color: #ff6b6b; display: none; margin-top: 10px;">كلمة المرور خاطئة!</p>
+    <p id="error-msg" style="color: #ff6b6b; display: none; margin-top: 10px; font-weight: bold;">كلمة المرور خاطئة!</p>
 </div>
 
-<div class="container">
+<!-- التطبيق الرئيسي ينفتح فقط بعد نجاح كلمة المرور -->
+<div id="main-app">
+  <div class="container">
     <!-- Form Controls -->
     <div class="form-section no-print">
         <h2>لوحة التحكم الكاملة والرحلات الخمس</h2>
@@ -663,22 +694,24 @@
 
             <div class="footer-note">
                 Opmerking: Dit rapport is automatisch gegenereerd door het <span id="outPlatFooter">Golden Ramdoun</span> Taxi Management Systeem.<br>
-                Voor vragen of ondersteuning, neem contact op met uw systeembeheerder.
+                Voor vragen of ondersteuning, neem contact op مع مدير النظام.
             </div>
         </div>
 
     </div>
+  </div>
 </div>
 
 <script>
-    // برمجة شاشة القفل وكلمة المرور
     const SECRET_PASS = "ram12345";
 
+    // التحقق المباشر من كلمة المرور عند الضغط على الدخول أو زر Enter
     function checkPassword() {
       const input = document.getElementById('pass-input').value;
       if (input === SECRET_PASS) {
         document.getElementById('lock-screen').style.display = 'none';
-        sessionStorage.setItem('authenticated', 'true');
+        document.getElementById('main-app').style.display = 'block';
+        updateAllDocuments();
       } else {
         document.getElementById('error-msg').style.display = 'block';
       }
@@ -688,11 +721,7 @@
       if (e.key === 'Enter') checkPassword();
     });
 
-    if (sessionStorage.getItem('authenticated') === 'true') {
-      document.getElementById('lock-screen').style.display = 'none';
-    }
-
-    // تعيين تاريخ اليوم
+    // تعيين التاريخ
     document.getElementById('inTripDate').valueAsDate = new Date();
 
     function updateAllDocuments() {
@@ -849,10 +878,6 @@
         document.getElementById('reportSection').classList.remove('hide-on-print');
         window.print();
     }
-
-    window.onload = function() {
-        updateAllDocuments();
-    };
 </script>
 
 </body>
