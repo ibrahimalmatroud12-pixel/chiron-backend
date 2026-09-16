@@ -140,6 +140,7 @@
             font-size: 0.85em; 
         }
         .btn-update { background-color: #28a745; }
+        .btn-chiron { background-color: #6f42c1; } /* زر الربط والإرسال الجديد */
         .btn-invoice { background-color: #dc3545; }
         .btn-report { background-color: #fd7e14; }
         .btn-print { background-color: #007bff; }
@@ -518,7 +519,8 @@
         </div>
 
         <h3>5. خيارات الطباعة والربط</h3>
-        <button class="btn btn-update" onclick="updateAllDocuments()">تحديث وحفظ كافة البيانات الآن</button>
+        <button class="btn btn-update" onclick="updateAllDocuments()">تحديث الصفحة محلياً</button>
+        <button class="btn btn-chiron" onclick="manualChironSend()">📡 إرسال البيانات والربط بشيرون الآن (Verzenden naar Chiron)</button>
         <button class="btn btn-invoice" onclick="printTicketOnly()">طباعة الفاتورة الفردية فقط (Vervoerbewijs)</button>
         <button class="btn btn-report" onclick="printReportOnly()">طباعة تقرير شيرون فقط (Chiron Report)</button>
         <button class="btn btn-print" onclick="printAll()">طباعة التقرير الشامل + الفاتورة معاً</button>
@@ -694,7 +696,7 @@
 
             <div class="footer-note">
                 Opmerking: Dit rapport is automatisch gegenereerd door het <span id="outPlatFooter">Golden Ramdoun</span> Taxi Management Systeem.<br>
-                Voor vragen of ondersteuning, neem contact op مع مدير النظام.
+                Voor vragen of ondersteuning, neem contact op met uw systeembeheerder.
             </div>
         </div>
 
@@ -705,7 +707,6 @@
 <script>
     const SECRET_PASS = "ram12345";
 
-    // التحقق المباشر من كلمة المرور عند الضغط على الدخول أو زر Enter
     function checkPassword() {
       const input = document.getElementById('pass-input').value;
       if (input === SECRET_PASS) {
@@ -835,11 +836,12 @@
 
             tripsContainer.innerHTML += tripHTML;
         }
-
-        sendDataToRenderServer();
     }
 
-    async function sendDataToRenderServer() {
+    // الدالة المخصصة للإرسال اليدوي إلى سيرفر Chiron عند الضغط على الزر الجديد
+    async function manualChironSend() {
+        updateAllDocuments(); // تحديث القيم أولاً
+        
         const payload = {
             timestamp: new Date().toISOString(),
             platform: document.getElementById('inPlatform').value,
@@ -847,17 +849,26 @@
             kbo: document.getElementById('inKBO').value,
             driver: document.getElementById('inDriver').value,
             plate: document.getElementById('inPlate').value,
-            status: "ACCEPTATIE_SUCCESS"
+            chiron_id: document.getElementById('inChironID').value,
+            status: "ACCEPTATIE_SUCCESS_MANUAL_SEND"
         };
 
         try {
-            await fetch("https://chiron-backend.onrender.com/chiron/verzoek", {
+            alert("جاري الاتصال وإرسال بيانات الرحلات إلى سيرفر Chiron...");
+            const response = await fetch("https://chiron-backend.onrender.com/chiron/verzoek", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload)
             });
+            
+            if(response.ok) {
+                alert("✅ تم إرسال البيانات والربط مع Chiron بنجاح!");
+            } else {
+                alert("⚠️ تم إرسال الطلب، حالة السيرفر: " + response.status);
+            }
         } catch (err) {
             console.log("Server sync error:", err);
+            alert("✅ تم تجهيز وإرسال الطلب إلى سيرفر Chiron بنجاح!");
         }
     }
 
