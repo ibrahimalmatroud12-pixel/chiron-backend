@@ -252,18 +252,17 @@
             line-height: 1.2; 
         }
 
+        /* تنسيق تقرير A4 للعرض والطباعة */
         .doc-card { 
             width: 100%;
-            max-width: 800px;
+            max-width: 210mm;
             border: 1px solid #ccc; 
-            padding: 20px; 
+            padding: 15mm; 
             background: #fff; 
-            font-size: 0.82em; 
+            font-size: 0.85em; 
             border-radius: 5px; 
             margin-bottom: 15px; 
             box-sizing: border-box;
-            page-break-before: always;
-            break-before: page;
         }
         .doc-header { 
             text-align: left; 
@@ -331,6 +330,8 @@
             border-radius: 5px; 
             margin-bottom: 10px; 
             background: #fafafa; 
+            page-break-inside: avoid;
+            break-inside: avoid;
         }
         .pdf-trip-header { 
             font-weight: bold; 
@@ -353,22 +354,19 @@
             text-align: center; 
         }
 
+        /* إعدادات الطباعة الذكية للحجم والتجاوب */
         @media print {
-            @page {
-                size: 80mm auto;
-                margin: 0;
-            }
-            html, body {
-                width: 80mm;
-                margin: 0 !important;
-                padding: 0 !important;
-                background: #fff;
-            }
-            #lock-screen, .no-print { 
+            #lock-screen, .no-print, .hide-on-print { 
                 display: none !important; 
             }
             #main-app {
                 display: block !important;
+            }
+            html, body {
+                width: 100%;
+                margin: 0 !important;
+                padding: 0 !important;
+                background: #fff;
             }
             .container { 
                 display: block !important; 
@@ -384,7 +382,30 @@
                 width: 100% !important; 
                 display: block !important;
             }
-            .invoice-card { 
+
+            /* طباعة تقرير شيرون كـ A4 */
+            body.print-report-mode {
+                font-size: 10pt;
+            }
+            body.print-report-mode @page {
+                size: A4 portrait;
+                margin: 15mm;
+            }
+            body.print-report-mode .doc-card {
+                width: 100% !important;
+                max-width: none !important;
+                border: none !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                box-shadow: none !important;
+            }
+
+            /* طباعة الفاتورة الفردية كـ 80mm */
+            body.print-ticket-mode @page {
+                size: 80mm auto;
+                margin: 0;
+            }
+            body.print-ticket-mode .invoice-card { 
                 width: 100% !important; 
                 max-width: 80mm !important;
                 border: none !important; 
@@ -394,13 +415,22 @@
                 page-break-inside: avoid !important;
                 break-inside: avoid !important;
             }
-            .doc-card {
+
+            /* الطباعة الجماعية (الكود معاً) */
+            body.print-all-mode @page {
+                size: A4 portrait;
+                margin: 10mm;
+            }
+            body.print-all-mode .invoice-card {
+                width: 80mm !important;
+                margin: 0 auto 20px auto !important;
+            }
+            body.print-all-mode .doc-card {
                 width: 100% !important;
                 border: none !important;
-                padding: 10px !important;
-            }
-            .hide-on-print { 
-                display: none !important; 
+                padding: 0 !important;
+                page-break-before: always;
+                break-before: page;
             }
         }
     </style>
@@ -1004,18 +1034,21 @@
     }
 
     function printTicketOnly() {
+        document.body.className = 'print-ticket-mode';
         document.getElementById('reportSection').classList.add('hide-on-print');
         document.getElementById('ticketSection').classList.remove('hide-on-print');
         window.print();
     }
 
     function printReportOnly() {
+        document.body.className = 'print-report-mode';
         document.getElementById('ticketSection').classList.add('hide-on-print');
         document.getElementById('reportSection').classList.remove('hide-on-print');
         window.print();
     }
 
     function printAll() {
+        document.body.className = 'print-all-mode';
         document.getElementById('ticketSection').classList.remove('hide-on-print');
         document.getElementById('reportSection').classList.remove('hide-on-print');
         window.print();
